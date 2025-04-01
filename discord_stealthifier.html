@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stealthifier Web</title>
+  <style>
+    body {
+      background-color: #1e1e1e;
+      color: white;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    textarea, input[type=text] {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      margin-bottom: 10px;
+      background-color: #333;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-family: Arial, sans-serif;
+      resize: vertical;
+    }
+    .variant {
+      background-color: #2d2d2d;
+      border: 1px solid #444;
+      border-radius: 5px;
+      margin-bottom: 10px;
+      padding: 5px;
+      display: flex;
+      align-items: stretch;
+      gap: 1px;
+    }
+    .variant-label {
+      width: 10%;
+      min-width: 10px;
+      display: flex;
+      align-items: center;
+      font-weight: bold;
+
+    }
+    .variant-area {
+      width: 100%;
+    }
+    .variant-text {
+      width: 100%;
+      height: 60px;
+      resize: vertical;
+      padding: 1px;
+      font-family: Arial, sans-serif;
+      background-color: #2d2d2d;
+      color: white;
+      border: 1px solid #444;
+      border-radius: 10px;
+    }
+    .variant-copy {
+      white-space: nowrap;
+    }
+    button {
+      background-color: #3b82f6;
+      color: white;
+      border: none;
+      padding: 5px 5px;
+      margin: 5px 5px 10px 0;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    button:hover {
+      background-color: #00ff00;
+    }
+    .copy {
+      background-color: #10b981;
+    }
+    .clear {
+      background-color: #ef4444;
+    }
+    .copy-all {
+      background-color: #f59e0b;
+    }
+    .label {
+      margin-bottom: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h5>Discord space shenanigans</h5>
+
+  <label class="label">Message:</label>
+  <textarea id="mainInput" rows="4"></textarea>
+
+  <button onclick="stealthify()">Stealthify All</button>
+  <button class="copy-all" onclick="copyAll()">Copy All</button>
+  <button class="clear" onclick="clearAll()">Clear All</button>
+
+  <div id="variants"></div>
+
+  <script>
+    const UNICODE_SPACES = {
+      "Z W S (\u200B)": "\u200B",
+      "L R M (\u200E)": "\u200E",
+      "R L M (\u200F)": "\u200F",
+      "B B (\u2800)": "\u2800",
+      "H F (\u3164)": "\u3164"
+    };
+
+    const variantsDiv = document.getElementById('variants');
+    const variantBoxes = {};
+
+    for (const label in UNICODE_SPACES) {
+      const container = document.createElement('div');
+      container.className = 'variant';
+
+      const labelDiv = document.createElement('div');
+      labelDiv.className = 'variant-label';
+      labelDiv.textContent = label;
+
+      const areaContainer = document.createElement('div');
+      areaContainer.className = 'variant-area';
+
+      const area = document.createElement('textarea');
+      area.className = 'variant-text';
+      area.readOnly = true;
+      variantBoxes[label] = area;
+
+      const copyBtn = document.createElement('button');
+      copyBtn.textContent = 'Copy';
+      copyBtn.className = 'copy variant-copy';
+      copyBtn.onclick = () => {
+        navigator.clipboard.writeText(area.value);
+        copyBtn.textContent = 'Copied';
+        copyBtn.disabled = true;
+        setTimeout(() => {
+          copyBtn.textContent = 'Copy';
+          copyBtn.disabled = false;
+        }, 1500);
+      };
+
+      areaContainer.appendChild(area);
+      container.appendChild(labelDiv);
+      container.appendChild(areaContainer);
+      container.appendChild(copyBtn);
+      variantsDiv.appendChild(container);
+    }
+
+    function stealthify() {
+      const input = document.getElementById('mainInput').value.trim();
+      if (!input) return;
+      for (const label in UNICODE_SPACES) {
+        const char = UNICODE_SPACES[label];
+        variantBoxes[label].value = input.split(' ').join(char);
+      }
+    }
+
+    function copyAll() {
+      let allText = '';
+      for (const label in UNICODE_SPACES) {
+        const val = variantBoxes[label].value;
+        if (val) allText += val + '\n';
+      }
+
+      navigator.clipboard.writeText(allText.trim());
+
+      const copyAllBtn = document.querySelector('.copy-all');
+      copyAllBtn.textContent = 'Copied All!';
+      copyAllBtn.disabled = true;
+
+      setTimeout(() => {
+        copyAllBtn.textContent = 'Copy All';
+        copyAllBtn.disabled = false;
+      }, 1500);
+    }
+
+
+    function clearAll() {
+      document.getElementById('mainInput').value = '';
+      for (const label in UNICODE_SPACES) {
+        variantBoxes[label].value = '';
+      }
+    }
+
+    document.getElementById('mainInput').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        stealthify();
+      }
+    });
+  </script>
+</body>
+</html>
